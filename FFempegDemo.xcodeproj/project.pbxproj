@@ -2028,6 +2028,9 @@
 		A7BAE9F31DED4AD300DFAA02 /* FFmpegDecode.m in Sources */ = {isa = PBXBuildFile; fileRef = A7BAE9F21DED4AD300DFAA02 /* FFmpegDecode.m */; };
 		A7BAE9F51DED4D3100DFAA02 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7BAE9F41DED4D3100DFAA02 /* AVFoundation.framework */; };
 		A7BAE9FD1DED516200DFAA02 /* VideoToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7BAE9FC1DED516200DFAA02 /* VideoToolbox.framework */; };
+		A7BAE9FF1DED6D9A00DFAA02 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7BAE9FE1DED6D9A00DFAA02 /* CoreGraphics.framework */; };
+		A7BAEA011DED6DA400DFAA02 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7BAEA001DED6DA400DFAA02 /* CoreMedia.framework */; };
+		A7BAEA041DED6ED900DFAA02 /* SJMovieObject.m in Sources */ = {isa = PBXBuildFile; fileRef = A7BAEA031DED6ED900DFAA02 /* SJMovieObject.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -4181,6 +4184,10 @@
 		A7BAE9F21DED4AD300DFAA02 /* FFmpegDecode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FFmpegDecode.m; sourceTree = "<group>"; };
 		A7BAE9F41DED4D3100DFAA02 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		A7BAE9FC1DED516200DFAA02 /* VideoToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VideoToolbox.framework; path = System/Library/Frameworks/VideoToolbox.framework; sourceTree = SDKROOT; };
+		A7BAE9FE1DED6D9A00DFAA02 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		A7BAEA001DED6DA400DFAA02 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		A7BAEA021DED6ED900DFAA02 /* SJMovieObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SJMovieObject.h; sourceTree = "<group>"; };
+		A7BAEA031DED6ED900DFAA02 /* SJMovieObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SJMovieObject.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -4188,6 +4195,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A7BAEA011DED6DA400DFAA02 /* CoreMedia.framework in Frameworks */,
+				A7BAE9FF1DED6D9A00DFAA02 /* CoreGraphics.framework in Frameworks */,
 				A7BAE9FD1DED516200DFAA02 /* VideoToolbox.framework in Frameworks */,
 				A7BAE9F51DED4D3100DFAA02 /* AVFoundation.framework in Frameworks */,
 				A7BADA4C1DED299100DFAA02 /* libiconv.tbd in Frameworks */,
@@ -4252,6 +4261,8 @@
 				A7BAD99B1DED290700DFAA02 /* ViewController.m */,
 				A7BAE9F11DED4AD300DFAA02 /* FFmpegDecode.h */,
 				A7BAE9F21DED4AD300DFAA02 /* FFmpegDecode.m */,
+				A7BAEA021DED6ED900DFAA02 /* SJMovieObject.h */,
+				A7BAEA031DED6ED900DFAA02 /* SJMovieObject.m */,
 				A7BAD99D1DED290700DFAA02 /* Main.storyboard */,
 				A7BAD9A01DED290700DFAA02 /* Assets.xcassets */,
 				A7BAD9A21DED290700DFAA02 /* LaunchScreen.storyboard */,
@@ -4480,6 +4491,8 @@
 		A7BADA461DED297600DFAA02 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A7BAEA001DED6DA400DFAA02 /* CoreMedia.framework */,
+				A7BAE9FE1DED6D9A00DFAA02 /* CoreGraphics.framework */,
 				A7BAE9FC1DED516200DFAA02 /* VideoToolbox.framework */,
 				A7BAE9F41DED4D3100DFAA02 /* AVFoundation.framework */,
 				A7BADA4B1DED299100DFAA02 /* libiconv.tbd */,
@@ -8634,6 +8647,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A7BAD99C1DED290700DFAA02 /* ViewController.m in Sources */,
+				A7BAEA041DED6ED900DFAA02 /* SJMovieObject.m in Sources */,
 				A7BAD9991DED290700DFAA02 /* AppDelegate.m in Sources */,
 				A7BAE9F31DED4AD300DFAA02 /* FFmpegDecode.m in Sources */,
 				A7BAD9961DED290700DFAA02 /* main.m in Sources */,
@@ -8886,6 +8900,7 @@
 				A7BAD9C01DED290700DFAA02 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		A7BAD9C11DED290700DFAA02 /* Build configuration list for PBXNativeTarget "FFempegDemoTests" */ = {
 			isa = XCConfigurationList;
@@ -8894,6 +8909,7 @@
 				A7BAD9C31DED290700DFAA02 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		A7BAD9C41DED290700DFAA02 /* Build configuration list for PBXNativeTarget "FFempegDemoUITests" */ = {
 			isa = XCConfigurationList;
@@ -8902,6 +8918,7 @@
 				A7BAD9C61DED290700DFAA02 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

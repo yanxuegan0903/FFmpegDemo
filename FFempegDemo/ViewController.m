@@ -25,8 +25,8 @@
     
     UIImageView * imageView = [[UIImageView alloc]initWithFrame:CGRectMake(0, 30, self.view.bounds.size.width, self.view.bounds.size.width*9/16)];
     [self.view addSubview:imageView];
-    imageView.backgroundColor = [UIColor redColor];
-    imageView.contentMode = UIViewContentModeScaleAspectFit;
+    imageView.backgroundColor = [UIColor clearColor];
+    imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.imageView = imageView;
     
     
@@ -55,10 +55,23 @@
 
         [ffmpegDecode H264decoderWithVideoData:data completion:^(AVPicture picture) {
             NSLog(@"有数据返回");
+            
+            UIImage * image = [self imageFromAVPicture:picture width:360 height:640];
+            if (image) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                NSLog(@"image 存在");
+                   self.imageView.image = image;
+                });
+                
+            }else
+            {
+                NSLog(@"image 不存在");
+            }
+            
             count ++;
         }];
         
-        usleep(1000*20);
+        usleep(1000*30);
     }
     NSLog(@"count = %d",count);
     [ffmpegDecode releaseH264Decoder];
@@ -69,6 +82,57 @@
     
 }
 
+//-(UIImage *)imageFromAVPicture:(AVPicture)pict width:(int)width height:(int)height
+//{
+//    CGBitmapInfo bitmapInfo = kCGBitmapByteOrderDefault;
+//    CFDataRef data = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault, pict.data[0], pict.linesize[0]*height,kCFAllocatorNull);
+//    CGDataProviderRef provider = CGDataProviderCreateWithCFData(data);
+//    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+//    CGImageRef cgImage = CGImageCreate(width,
+//                                       height,
+//                                       8,
+//                                       24,
+//                                       pict.linesize[0],
+//                                       colorSpace,
+//                                       bitmapInfo,
+//                                       provider,
+//                                       NULL,
+//                                       NO,
+//                                       kCGRenderingIntentDefault);
+//    CGColorSpaceRelease(colorSpace);
+//    UIImage *image = [UIImage imageWithCGImage:cgImage];
+//    CGImageRelease(cgImage);
+//    CGDataProviderRelease(provider);
+//    CFRelease(data);
+//    
+//    return image;
+//}
+- (UIImage *)imageFromAVPicture:(AVPicture)pict width:(int)width height:(int)height
+{
+    CGBitmapInfo bitmapInfo = kCGBitmapByteOrderDefault;
+    CFDataRef data = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault, pict.data[0], pict.linesize[0]*height,kCFAllocatorNull);
+    CGDataProviderRef provider = CGDataProviderCreateWithCFData(data);
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGImageRef cgImage = CGImageCreate(width,
+                                       height,
+                                       8,
+                                       24,
+                                       pict.linesize[0],
+                                       colorSpace,
+                                       bitmapInfo,
+                                       provider,
+                                       NULL,
+                                       NO,
+                                       kCGRenderingIntentDefault);
+    CGColorSpaceRelease(colorSpace);
+    UIImage *image = [UIImage imageWithCGImage:cgImage];
+    
+    CGImageRelease(cgImage);
+    CGDataProviderRelease(provider);
+    CFRelease(data);
+    
+    return image;
+}
 
 
 - (void)didReceiveMemoryWarning {

@@ -36,7 +36,6 @@
  *  @return YES:解码成功
  */
 - (BOOL)initH264DecoderWithWidth:(int)width height:(int)height {
-    
     av_register_all();
     
     avformat_network_init();
@@ -68,9 +67,9 @@
 /**
  *  视频解码
  *
- *  @param data 被解码视频数据
+ *  @param VideoData 被解码视频数据
  *
- *  @return 图片
+ *
  */
 - (void)H264decoderWithVideoData:(NSData *)VideoData completion:(void (^)(AVPicture))completion {
     @autoreleasepool {
@@ -84,7 +83,6 @@
         if (getPicture == 0) {
             AVPicture picture;
             avpicture_alloc(&picture, AV_PIX_FMT_RGB24, self.codecCtx->width, self.codecCtx->height);
-            
             struct SwsContext *img_convert_ctx = sws_getContext(self.codecCtx->width,
                                                                 self.codecCtx->height,
                                                                 AV_PIX_FMT_YUV420P,
@@ -125,6 +123,50 @@
         self.frame = NULL;
     }
     av_packet_unref(&_packet);
+}
+
+
+
+- (BOOL)initFFmpegDecoder
+{
+    /*注册所有的编码器，解析器，码流过滤器，只需要初始化一次*/
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        avcodec_register_all();
+    });
+    /*查找指定格式的解析器，这里我们使用H264*/
+    AVCodec *pCodec = avcodec_find_decoder(AV_CODEC_ID_H264);
+    if (pCodec == NULL) {
+        NSLog(@"codec not found");
+        return NO;
+    }
+    /*初始化解析器容器*/
+    if (_codecCtx == NULL) {
+        _codecCtx = avcodec_alloc_context3(pCodec);
+        if (_codecCtx == NULL) {
+            NSLog(@"Allocate codec context failed");
+            return NO;
+        }
+        av_opt_set(_codecCtx->priv_data, "tune", "zerolatency", 0);
+    }
+    /*打开指定的解析器*/
+    int ret = avcodec_open2(_codecCtx, pCodec, NULL);
+    if (ret != 0) {
+        NSLog(@"open codec error :%d", ret);
+        return NO;
+    }
+    /*AVFrame用来描述原始的解码音频和视频数据*/
+    if (_frame == NULL) {
+        _frame = av_frame_alloc();
+        if (_frame == NULL) {
+            NSLog(@"av_frame_alloc failed");
+            return NO;
+        }
+    }
+    
+//    avpicture_free(&avPicture);
+//    avpicture_alloc(&avPicture, AV_PIX_FMT_RGB24, _outputSize.width, _outputSize.height);
+    return YES;
 }
 
 @end
