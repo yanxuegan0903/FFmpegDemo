@@ -21,6 +21,9 @@
 
 
 
+
+
+
 @interface FFmpegDecode ()
 {
     AAPLEAGLLayer * _playerLayer;
@@ -95,10 +98,17 @@
  */
 - (void)H264decoderWithVideoData:(NSData *)VideoData{
     @autoreleasepool {
-
+//
+//        NSLog(@"AVERROR(EAGAIN) =  %d",AVERROR(EAGAIN));  35
+//        NSLog(@"AVERROR_EOF =  %d",AVERROR_EOF);          541478725
+//        NSLog(@"AVERROR(EINVAL) =  %d",AVERROR(EINVAL));  22
+        
         
         _packet.data = (uint8_t *)VideoData.bytes;
         _packet.size = (int)VideoData.length;
+        
+        
+        
         
         int decodeStatu;
         decodeStatu = avcodec_send_packet(_codecCtx, &_packet);
@@ -204,7 +214,7 @@
     CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
     
     NSLog(@"_playerLayer.pixelBuffer = pixelBuffer;");
-    _playerLayer.pixelBuffer = pixelBuffer;
+//    _playerLayer.pixelBuffer = pixelBuffer;
     CVPixelBufferRelease(pixelBuffer);
 }
 

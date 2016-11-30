@@ -8,6 +8,9 @@
 
 #import "ViewController.h"
 #import "FFmpegDecode.h"
+#import "TotalDecode.h"
+
+
 
 #define INBUF_SIZE 4096
 #define AUDIO_INBUF_SIZE 20480
@@ -45,6 +48,12 @@
     [ffmpegDecode initH264DecoderWithWidth:1280 height:720 imageView:self.imageView];
 //    [ffmpegDecode initFFmpegDecoderimageView:self.imageView];
     self.ffmpegDecode = ffmpegDecode;
+    
+    
+    
+    
+    
+    
 }
 
 //- (void)clickBtn
@@ -84,9 +93,17 @@
         NSLog(@"path = %@",path);
         NSData * data = [NSData dataWithContentsOfFile:path];
 
+        
+        if (data.length == 0) {
+            NSLog(@"_packet.size == 0");
+            continue;
+        }
+        
         [self.ffmpegDecode H264decoderWithVideoData:data];
 //        [self.ffmpegDecode releaseH264Decoder];
         usleep(1000*20);
+        data = nil;
+        path = nil;
     }
     
     
