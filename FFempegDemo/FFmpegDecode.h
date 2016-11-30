@@ -13,14 +13,14 @@
 @interface FFmpegDecode : NSObject
 
 /* 初始化解码器 */
-- (BOOL)initH264DecoderWithWidth:(int)width height:(int)height;
+- (BOOL)initH264DecoderWithWidth:(int)width height:(int)height  imageView:(UIImageView *)imageView;
 
 /* 解码视频数据并且返回图片 */
-- (void)H264decoderWithVideoData:(NSData *)VideoData completion:(void (^)(AVPicture picture))completion;
+- (void)H264decoderWithVideoData:(NSData *)VideoData;
 
 /* 释放解码器 */
 - (void)releaseH264Decoder;
-
+- (BOOL)initFFmpegDecoderimageView:(UIImageView *)imageView ;
 
 
 @end
