@@ -112,11 +112,11 @@
         
         int decodeStatu;
         decodeStatu = avcodec_send_packet(_codecCtx, &_packet);
-        
         if (decodeStatu == 0)
         {
             NSLog(@"sendPacket success");
             decodeStatu = avcodec_receive_frame(self.codecCtx, self.frame);
+            
             av_packet_unref(&_packet);
             if (decodeStatu == 0)
             {
@@ -150,12 +150,14 @@
                 
             }else
             {
+                avcodec_flush_buffers(_codecCtx);
                 NSLog(@"decodeStatu = %d",decodeStatu);
             }
         
 
         }else
         {
+            //avcodec_flush_buffers(_codecCtx);
             NSLog(@"decodeStatu = %d",decodeStatu);
         }
     }
@@ -186,6 +188,7 @@
     
     CVReturn theError;
     if (!self.pixelBufferPool){
+        NSLog(@"!self.pixelBufferPool");
         NSMutableDictionary* attributes = [NSMutableDictionary dictionary];
         [attributes setObject:[NSNumber numberWithInt:kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange] forKey:(NSString*)kCVPixelBufferPixelFormatTypeKey];
         [attributes setObject:[NSNumber numberWithInt:frame->width] forKey: (NSString*)kCVPixelBufferWidthKey];
@@ -197,6 +200,57 @@
             NSLog(@"CVPixelBufferPoolCreate Failed");
         }
     }
+    
+//    CVPixelBufferRef pixbuffer;
+//    
+//    frame->width = 1280;
+//    frame->height = 720;
+//    
+//    size_t srcPlaneSize = frame->linesize[1]*frame->height;
+//    size_t dstPlaneSize = srcPlaneSize *2;
+//    uint8_t *dstPlane = malloc(dstPlaneSize);
+//    void *planeBaseAddress[2] = { frame->data[0], dstPlane };
+//    
+//    NSLog(@"src = %zu",srcPlaneSize);
+    
+    
+
+    // This loop is very naive and assumes that the line sizes are the same.
+    // It also copies padding bytes.
+//    assert(frame->linesize[1] == frame->linesize[2]);
+//    for(size_t i = 0; i<srcPlaneSize; i++){
+//        // These might be the wrong way round.
+//        dstPlane[2*i  ]=frame->data[2][i];
+//        dstPlane[2*i+1]=frame->data[1][i];
+//    }
+    
+    
+    // This assumes the width and height are even (it's 420 after all).
+    //assert(!frame->width%2 && !frame->height%2);
+//    size_t planeWidth[2] = {frame->width, frame->width/2};
+//    size_t planeHeight[2] = {frame->height, frame->height/2};
+//    // I'm not sure where you'd get this.
+//    size_t planeBytesPerRow[2] = {frame->linesize[0], frame->linesize[1]*2};
+//    int ret = CVPixelBufferCreateWithPlanarBytes(
+//                                                 NULL,
+//                                                 frame->width,
+//                                                 frame->height,
+//                                                 kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
+//                                                 NULL,
+//                                                 0,
+//                                                 2,
+//                                                 planeBaseAddress,
+//                                                 planeWidth,
+//                                                 planeHeight,
+//                                                 planeBytesPerRow,
+//                                                 nil,
+//                                                 nil,
+//                                                 NULL,
+//                                                 &pixbuffer);
+    
+    
+    
+    
     
     CVPixelBufferRef pixelBuffer = nil;
     theError = CVPixelBufferPoolCreatePixelBuffer(NULL, self.pixelBufferPool, &pixelBuffer);
@@ -210,12 +264,23 @@
     void* base = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
     memcpy(base, frame->data[0], bytePerRowY * frame->height);
     base = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
-    memcpy(base, frame->data[1], bytesPerRowUV * frame->height/2);
-    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
-    
+    //memcpy(base, frame->data[1], bytesPerRowUV * frame->height/2);
+    //CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+    uint32_t size = frame->linesize[1] * frame->height;
+    uint8_t* dstData = malloc(2 * size);
+    for (int i = 0; i < 2 * size; i++){
+        if (i % 2 == 0){
+            dstData[i] = frame->data[1][i/2];
+        }else {
+            dstData[i] = frame->data[2][i/2];
+        }
+    }
+    memcpy(base, dstData, bytesPerRowUV * frame->height/2);
+    free(dstData);
     NSLog(@"_playerLayer.pixelBuffer = pixelBuffer;");
-//    _playerLayer.pixelBuffer = pixelBuffer;
-    CVPixelBufferRelease(pixelBuffer);
+    _playerLayer.pixelBuffer = pixelBuffer;
+//    CVPixelBufferRelease(pixelBuffer);
+//    free(dstPlane);
 }
 
 
@@ -247,7 +312,7 @@
             NSLog(@"Allocate codec context failed");
             return NO;
         }
-        av_opt_set(_codecCtx->priv_data, "tune", "zerolatency", 0);
+        av_dict_set(_codecCtx->priv_data, "tune", "zerolatency", 0);
     }
     /*打开指定的解析器*/
     int ret = avcodec_open2(_codecCtx, pCodec, NULL);

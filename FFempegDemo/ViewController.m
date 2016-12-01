@@ -143,7 +143,7 @@
 /*
  * Video decoding example
  */
-
+/*
 static void pgm_save(unsigned char *buf, int wrap, int xsize, int ysize,
                      char *filename)
 {
@@ -182,9 +182,9 @@ static int decode_write_frame(const char *outfilename, AVCodecContext *avctx,
 }
 static void video_decode_example(const char *outfilename, const char *filename)
 {
-    av_register_all();
+//    av_register_all();
     avcodec_register_all();
-    avformat_network_init();
+//    avformat_network_init();
     
     AVCodec *codec;
     AVCodecContext *c= NULL;
@@ -252,7 +252,7 @@ static void video_decode_example(const char *outfilename, const char *filename)
     printf("\n");
 }
 
-
+*/
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
