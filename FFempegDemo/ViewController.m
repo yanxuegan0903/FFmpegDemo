@@ -94,10 +94,10 @@
         NSData * data = [NSData dataWithContentsOfFile:path];
 
         
-        if (data.length == 0) {
-            NSLog(@"_packet.size == 0");
-            continue;
-        }
+//        if (data.length == 0) {
+//            NSLog(@"_packet.size == 0");
+//            continue;
+//        }
         
         [self.ffmpegDecode H264decoderWithVideoData:data];
 //        [self.ffmpegDecode releaseH264Decoder];

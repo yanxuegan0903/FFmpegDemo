@@ -97,6 +97,7 @@
  *
  */
 - (void)H264decoderWithVideoData:(NSData *)VideoData{
+        
     @autoreleasepool {
 //
 //        NSLog(@"AVERROR(EAGAIN) =  %d",AVERROR(EAGAIN));  35
@@ -106,60 +107,33 @@
         
         _packet.data = (uint8_t *)VideoData.bytes;
         _packet.size = (int)VideoData.length;
-        
-        
-        
-        
-        int decodeStatu;
-        decodeStatu = avcodec_send_packet(_codecCtx, &_packet);
-        if (decodeStatu == 0)
+
+        int sendDecodeStatu,receiveDecodeStatus;
+        sendDecodeStatu = avcodec_send_packet(_codecCtx, &_packet);
+        if (sendDecodeStatu == 0)
         {
             NSLog(@"sendPacket success");
-            decodeStatu = avcodec_receive_frame(self.codecCtx, self.frame);
-            
-            av_packet_unref(&_packet);
-            if (decodeStatu == 0)
+            receiveDecodeStatus = avcodec_receive_frame(self.codecCtx, self.frame);
+            if (receiveDecodeStatus == 0)
             {
                 NSLog(@"receive Packet success");
-                //            AVPicture picture;
-                //            avpicture_alloc(&picture, AV_PIX_FMT_RGB24, self.codecCtx->width, self.codecCtx->height);
-                //            struct SwsContext *img_convert_ctx = sws_getContext(self.codecCtx->width,
-                //                                                                self.codecCtx->height,
-                //                                                                AV_PIX_FMT_YUV420P,
-                //                                                                self.codecCtx->width,
-                //                                                                self.codecCtx->height,
-                //                                                                AV_PIX_FMT_RGB24,
-                //                                                                SWS_FAST_BILINEAR,
-                //                                                                NULL,
-                //                                                                NULL,
-                //                                                                NULL);
-                //            // 图像处理
-                //            sws_scale(img_convert_ctx, (const uint8_t* const*)self.frame->data, self.frame->linesize, 0, self.codecCtx->height, picture.data, picture.linesize);
-                //
-                //            sws_freeContext(img_convert_ctx);
-                //            img_convert_ctx = NULL;
-                //            
-                //            if (completion) {
-                //                completion(picture);
-                //            }
-                //            
-                //            avpicture_free(&picture);
-                
                 [self dispatchAVFrame:self.frame];
                 
-                
+            }else if(receiveDecodeStatus == AVERROR_EOF){
+                avcodec_flush_buffers(_codecCtx);
+                NSLog(@"receiveDecodeStatus = %d",receiveDecodeStatus);
             }else
             {
-                avcodec_flush_buffers(_codecCtx);
-                NSLog(@"decodeStatu = %d",decodeStatu);
+                //avcodec_flush_buffers(_codecCtx);
+                NSLog(@"receiveDecodeStatus = %d",receiveDecodeStatus);
             }
-        
+         
 
         }else
         {
-            //avcodec_flush_buffers(_codecCtx);
-            NSLog(@"decodeStatu = %d",decodeStatu);
+            NSLog(@"sendDecodeStatu = %d",sendDecodeStatu);
         }
+        av_packet_unref(&_packet);
     }
 }
 
@@ -200,57 +174,6 @@
             NSLog(@"CVPixelBufferPoolCreate Failed");
         }
     }
-    
-//    CVPixelBufferRef pixbuffer;
-//    
-//    frame->width = 1280;
-//    frame->height = 720;
-//    
-//    size_t srcPlaneSize = frame->linesize[1]*frame->height;
-//    size_t dstPlaneSize = srcPlaneSize *2;
-//    uint8_t *dstPlane = malloc(dstPlaneSize);
-//    void *planeBaseAddress[2] = { frame->data[0], dstPlane };
-//    
-//    NSLog(@"src = %zu",srcPlaneSize);
-    
-    
-
-    // This loop is very naive and assumes that the line sizes are the same.
-    // It also copies padding bytes.
-//    assert(frame->linesize[1] == frame->linesize[2]);
-//    for(size_t i = 0; i<srcPlaneSize; i++){
-//        // These might be the wrong way round.
-//        dstPlane[2*i  ]=frame->data[2][i];
-//        dstPlane[2*i+1]=frame->data[1][i];
-//    }
-    
-    
-    // This assumes the width and height are even (it's 420 after all).
-    //assert(!frame->width%2 && !frame->height%2);
-//    size_t planeWidth[2] = {frame->width, frame->width/2};
-//    size_t planeHeight[2] = {frame->height, frame->height/2};
-//    // I'm not sure where you'd get this.
-//    size_t planeBytesPerRow[2] = {frame->linesize[0], frame->linesize[1]*2};
-//    int ret = CVPixelBufferCreateWithPlanarBytes(
-//                                                 NULL,
-//                                                 frame->width,
-//                                                 frame->height,
-//                                                 kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
-//                                                 NULL,
-//                                                 0,
-//                                                 2,
-//                                                 planeBaseAddress,
-//                                                 planeWidth,
-//                                                 planeHeight,
-//                                                 planeBytesPerRow,
-//                                                 nil,
-//                                                 nil,
-//                                                 NULL,
-//                                                 &pixbuffer);
-    
-    
-    
-    
     
     CVPixelBufferRef pixelBuffer = nil;
     theError = CVPixelBufferPoolCreatePixelBuffer(NULL, self.pixelBufferPool, &pixelBuffer);
