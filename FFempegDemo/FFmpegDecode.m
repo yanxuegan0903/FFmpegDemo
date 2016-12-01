@@ -27,6 +27,7 @@
 @interface FFmpegDecode ()
 {
     AAPLEAGLLayer * _playerLayer;
+    NSLock * _dstDataLock;
 }
 
 
@@ -86,19 +87,26 @@
         }
     }
     
+    
+    int version = avcodec_version();
+    NSLog(@"version = %d",version);
     return (BOOL)self.frame;
 }
 
 /**
  *  视频解码
  *
- *  @param VideoData 被解码视频数据
+ *  VideoData 被解码视频数据
  *
  *
  */
+static int count = 0;
 - (void)H264decoderWithVideoData:(NSData *)VideoData{
-        
-    @autoreleasepool {
+    static int i;
+    i++;
+    count++;
+
+//    @autoreleasepol {
 //
 //        NSLog(@"AVERROR(EAGAIN) =  %d",AVERROR(EAGAIN));  35
 //        NSLog(@"AVERROR_EOF =  %d",AVERROR_EOF);          541478725
@@ -109,6 +117,7 @@
         _packet.size = (int)VideoData.length;
 
         int sendDecodeStatu,receiveDecodeStatus;
+    if (i <= 1000000){
         sendDecodeStatu = avcodec_send_packet(_codecCtx, &_packet);
         if (sendDecodeStatu == 0)
         {
@@ -121,10 +130,10 @@
                 
             }else if(receiveDecodeStatus == AVERROR_EOF){
                 avcodec_flush_buffers(_codecCtx);
-                NSLog(@"receiveDecodeStatus = %d",receiveDecodeStatus);
+                NSLog(@"receiveDecodeStatus = AVERROR_EOF");
             }else
             {
-                //avcodec_flush_buffers(_codecCtx);
+                avcodec_flush_buffers(_codecCtx);
                 NSLog(@"receiveDecodeStatus = %d",receiveDecodeStatus);
             }
          
@@ -134,7 +143,9 @@
             NSLog(@"sendDecodeStatu = %d",sendDecodeStatu);
         }
         av_packet_unref(&_packet);
-    }
+        av_frame_unref(_frame);
+        }
+//    }
 }
 
 /**
@@ -148,6 +159,7 @@
     }
     
     if(self.frame) {
+        
         av_frame_free(&_frame);
         self.frame = NULL;
     }
@@ -156,30 +168,37 @@
 
 
 - (void)dispatchAVFrame:(AVFrame*) frame{
+    
     if(!frame || !frame->data[0]){
         return;
     }
+    [_dstDataLock lock];
     
     CVReturn theError;
-    if (!self.pixelBufferPool){
-        NSLog(@"!self.pixelBufferPool");
-        NSMutableDictionary* attributes = [NSMutableDictionary dictionary];
-        [attributes setObject:[NSNumber numberWithInt:kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange] forKey:(NSString*)kCVPixelBufferPixelFormatTypeKey];
-        [attributes setObject:[NSNumber numberWithInt:frame->width] forKey: (NSString*)kCVPixelBufferWidthKey];
-        [attributes setObject:[NSNumber numberWithInt:frame->height] forKey: (NSString*)kCVPixelBufferHeightKey];
-        [attributes setObject:@(frame->linesize[0]) forKey:(NSString*)kCVPixelBufferBytesPerRowAlignmentKey];
-        [attributes setObject:[NSDictionary dictionary] forKey:(NSString*)kCVPixelBufferIOSurfacePropertiesKey];
-        theError = CVPixelBufferPoolCreate(kCFAllocatorDefault, NULL, (__bridge CFDictionaryRef) attributes, &_pixelBufferPool);
-        if (theError != kCVReturnSuccess){
-            NSLog(@"CVPixelBufferPoolCreate Failed");
-        }
-    }
+//    if (!self.pixelBufferPool){
+//        NSLog(@"!self.pixelBufferPool");
+//        NSMutableDictionary* attributes = [NSMutableDictionary dictionary];
+//        [attributes setObject:[NSNumber numberWithInt:kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange] forKey:(NSString*)kCVPixelBufferPixelFormatTypeKey];
+//        [attributes setObject:[NSNumber numberWithInt:frame->width] forKey: (NSString*)kCVPixelBufferWidthKey];
+//        [attributes setObject:[NSNumber numberWithInt:frame->height] forKey: (NSString*)kCVPixelBufferHeightKey];
+//        [attributes setObject:@(frame->linesize[0]) forKey:(NSString*)kCVPixelBufferBytesPerRowAlignmentKey];
+//        [attributes setObject:[NSDictionary dictionary] forKey:(NSString*)kCVPixelBufferIOSurfacePropertiesKey];
+//        theError = CVPixelBufferPoolCreate(kCFAllocatorDefault, NULL, (__bridge CFDictionaryRef) attributes, &_pixelBufferPool);
+//        if (theError != kCVReturnSuccess){
+//            NSLog(@"CVPixelBufferPoolCreate Failed");
+//        }
+//    }
     
     CVPixelBufferRef pixelBuffer = nil;
-    theError = CVPixelBufferPoolCreatePixelBuffer(NULL, self.pixelBufferPool, &pixelBuffer);
+    //theError = CVPixelBufferPoolCreatePixelBuffer(NULL, self.pixelBufferPool, &pixelBuffer);
+    
+    theError = CVPixelBufferCreate(NULL, frame->width, frame->height, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, NULL, &pixelBuffer);
     if(theError != kCVReturnSuccess){
-        NSLog(@"CVPixelBufferPoolCreatePixelBuffer Failed");
+        NSLog(@"CVPixelBufferPoolCreatePixelBuffer Failed  theError = %d",theError);
     }
+//    CVPixelBufferRelease(pixelBuffer);
+//    CVPixelBufferPoolRelease(self.pixelBufferPool);
+//    return ;
     
     CVPixelBufferLockBaseAddress(pixelBuffer, 0);
     size_t bytePerRowY = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
@@ -190,20 +209,48 @@
     //memcpy(base, frame->data[1], bytesPerRowUV * frame->height/2);
     //CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
     uint32_t size = frame->linesize[1] * frame->height;
+//    printf("data[0] size is  %d\n", frame->linesize[0]);
+//    printf("data[1] size is  %d\n", frame->linesize[1]);
+//    printf("data[2] size is  %d\n", frame->linesize[2]);
+    
+   
+    
+    
     uint8_t* dstData = malloc(2 * size);
+    if(dstData == NULL){
+        NSLog(@"dstData = NUll");
+        [_dstDataLock unlock];
+        CVPixelBufferRelease(pixelBuffer);
+        return;
+    }
+
     for (int i = 0; i < 2 * size; i++){
         if (i % 2 == 0){
             dstData[i] = frame->data[1][i/2];
-        }else {
+        }else{
+//            if (count == 241) {
+//                return;
+//                if (i>470000) {
+//                    printf("i = %d %02x\n",i, frame->data[2][i/2]);
+//                }
+//                
+//            }
+            if(count == 241){
+                return;
+            }
             dstData[i] = frame->data[2][i/2];
         }
     }
     memcpy(base, dstData, bytesPerRowUV * frame->height/2);
-    free(dstData);
+//    int ret = CVPixelBufferCreateWithBytes(NULL, frame->width, frame->height, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, buffer, frame->linesize[0], NULL, 0, NULL, &pixelBuffer)
+    
+ //   free(dstData);
     NSLog(@"_playerLayer.pixelBuffer = pixelBuffer;");
     _playerLayer.pixelBuffer = pixelBuffer;
-//    CVPixelBufferRelease(pixelBuffer);
-//    free(dstPlane);
+    CVPixelBufferRelease(pixelBuffer);
+    free(dstData);
+    
+    [_dstDataLock unlock];
 }
 
 

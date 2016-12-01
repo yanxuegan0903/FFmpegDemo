@@ -82,12 +82,12 @@
 - (void)clickBtn
 {
     
-    for (int i = 1; i<1383; i++) {
+    for (int i = 240; i<1383; i++) {
         
         NSString * path = [[NSBundle mainBundle]pathForResource:[NSString stringWithFormat:@"bb%04d.h264",i] ofType:nil];
         if (!path) {
             NSLog(@"path 不存在");
-            i = 1;
+            i = 240;
             continue;
         }
         NSLog(@"path = %@",path);
